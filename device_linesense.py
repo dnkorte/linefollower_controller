@@ -1,9 +1,22 @@
+"""
+# Controller for Line-Following Robot
+# This runs on an Adafruit Feather M4, with a MiniTFT board.  
+# It drives a TB6612 to control 2 DC Motors (in blue servo case)
+# and talks over I2C to an ItsyBitsy that interfaces a Pololu 
+# line following sensor
 #
-# module device_motors manages motors
-# 
-# Author(s):  Don Korte
-# Repository: https://github.com/dnkorte/xxxx
+# Author(s): Don Korte
+# Module:  device_linesense.py manages communication with the line sensor
+#	processor over i2c; 
 #
+# NOTE that this module is compatible with CircuitPython 5.3, but when 
+#	converting to CircuitPython 6.0 will need to remove the "stop=False"
+#	kwarg from the i2c.writeto call and start using write_then_read
+#
+# github: https://github.com/dnkorte/linefollower_controller
+#
+# Reference: https://circuitpython.readthedocs.io/projects/featherwing/en/latest/_modules/adafruit_featherwing/minitft_featherwing.html
+#  
 # MIT License
 # 
 # Copyright (c) 2020 Don Korte
@@ -26,6 +39,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # 
+""" 
 
 import time
 import board

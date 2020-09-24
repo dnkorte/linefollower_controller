@@ -1,13 +1,36 @@
 """
-code_circuitpython/line_follower_main/controller.py
- 
-note that if you use displayio functions in the "normal" way, then they over-ride
-the console style scrolling printout for print(xxx) on the TFT screen,
-but the print commands still work for the the attached serial terminal.
-  
-this example is generated in part from TFT guide: 
-   https://learn.adafruit.com/adafruit-mini-tft-featherwing/mini-color-tft-with-joystick-featherwing
-and verifies operation of board, and shows use of "console print" feature
+# Controller for Line-Following Robot
+# This runs on an Adafruit Feather M4, with a MiniTFT board.  
+# It drives a TB6612 to control 2 DC Motors (in blue servo case)
+# and talks over I2C to an ItsyBitsy that interfaces a Pololu 
+# line following sensor
+#
+# Author(s): Don Korte
+# Module:  code.py is mainline initialization and master loop
+# github: https://github.com/dnkorte/linefollower_controller
+# 
+# MIT License
+# 
+# Copyright (c) 2020 Don Korte
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
 """
 
 import time

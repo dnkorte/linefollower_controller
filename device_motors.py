@@ -1,22 +1,31 @@
+"""
+# Controller for Line-Following Robot
+# This runs on an Adafruit Feather M4, with a MiniTFT board.  
+# It drives a TB6612 to control 2 DC Motors (in blue servo case)
+# and talks over I2C to an ItsyBitsy that interfaces a Pololu 
+# line following sensor
 #
-# module device_motors manages motors
-# Author(s):  Don Korte
+# Author(s): Don Korte
+# Module:  device_motors.py manages motor drive for 2 DC motors
 #
-# Repository: https://github.com/dnkorte/xxxx
-#
-#
+# github: https://github.com/dnkorte/linefollower_controller
+##
 # note that dc motors in mg90 cases turn approx 120 rpm at 100% pwm
 #    120 rpm = 2 rev/sec.   for 2in wheel this is 12 in / sec
 #    for 80mm minirobot, wheels are on 2 in radius from axis of rotation
 #	 so a 360 degree turn is 12 in of circumference or 1 second
-#    a 90 degree turn is approx 0.25 sec
+#    a 90 degree turn is approx 0.25 sec.  Note also that these motors
+#    are basically too fast for this application -- they need to run at 
+#    40% throttle or less for reasonable speeds -- and 20% (or thereabouts
+#    is the very bottom end for these motors -- they have no torque or 
+#    reliability at this speed)
+# 
+# Note (dnk) with a 6v Vmot, 0.20 throttle is about the slowest they can go
 #    
 # reference adafruit motor library guide: 
 #	https://circuitpython.readthedocs.io/projects/motor/en/latest/api.html
-# The TB6612 boards feature three inputs XIN1, XIN2 and PWMX. Since we 
-# PWM the INs directly its expected that the PWM pin is consistently high.
-# 
-# Note (dnk) with a 5v supply, 0.20 throttle is about the slowest they can go
+# 	The TB6612 boards feature three inputs XIN1, XIN2 and PWMX. Since we 
+# 	PWM the INs directly its expected that the PWM pin is consistently high.
 #
 # MIT License
 # 
@@ -40,6 +49,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # 
+"""
 
 import time
 import pulseio

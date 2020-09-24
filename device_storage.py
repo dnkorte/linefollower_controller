@@ -1,8 +1,14 @@
+"""
+# Controller for Line-Following Robot
+# This runs on an Adafruit Feather M4, with a MiniTFT board.  
+# It drives a TB6612 to control 2 DC Motors (in blue servo case)
+# and talks over I2C to an ItsyBitsy that interfaces a Pololu 
+# line following sensor
 #
-# module device_motors manages motors
-# 
-# Author(s):  Don Korte
-# Repository: https://github.com/dnkorte/xxxx
+# Author(s): Don Korte
+# Module:  device_storage.py communicates with SD card to save run data
+#
+# github: https://github.com/dnkorte/linefollower_controller
 #
 # MIT License
 # 
@@ -26,6 +32,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # 
+""" 
 
 import time
 
