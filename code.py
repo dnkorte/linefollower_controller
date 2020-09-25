@@ -59,7 +59,8 @@ from device_battery import Device_Battery
 minitft = minitft_featherwing.MiniTFTFeatherWing()
 
 # create / initialize device handlers
-screen_dashboard = Screen_Dashboard(minitft)
+mode_config = Mode_Config(minitft)
+screen_dashboard = Screen_Dashboard(minitft, mode_config)
 device_motors = Device_Motors(screen_dashboard)
 device_linesense = Device_LineSense(screen_dashboard)
 device_storage = Device_Storage()
@@ -76,11 +77,10 @@ mainmenu_items = [ ["Calibrate Sensors", "CAL"], ["Follow Path", "PATH"],
     ["Setup Parameters", "SETUP"], ["Display Linesensor", "DISPSENS"] ]
 screen_menu = Screen_Menu(minitft, mainmenu_items, device_linesense, device_battery)
 
-mode_followpath = Mode_FollowPath(screen_dashboard, device_motors, device_linesense, device_storage)
+mode_followpath = Mode_FollowPath(screen_dashboard, device_motors, device_linesense, device_storage, mode_config)
 mode_driveshapes = Mode_DriveShapes(screen_dashboard, device_motors, device_linesense, device_storage)
 mode_calibrate = Mode_Calibrate(screen_dashboard, device_motors, device_linesense, device_storage)
-mode_config = Mode_Config(minitft, mode_followpath)
-screen_summary = Screen_Summary(minitft, mode_followpath, device_storage, device_battery)
+screen_summary = Screen_Summary(minitft, mode_followpath, mode_config, device_storage, device_battery)
 
 next_mode = "MAINMENU"
 while True:

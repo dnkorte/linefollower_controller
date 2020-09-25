@@ -42,9 +42,10 @@ import time
 import mycolors
 
 class Screen_Summary:
-	def __init__(self, tft_device, mode_followpath, device_storage, device_battery):
+	def __init__(self, tft_device, mode_followpath, mode_config, device_storage, device_battery):
 		self.this_tft = tft_device
 		self.mode_followpath = mode_followpath
+		self.mode_config = mode_config
 		self.device_storage = device_storage
 		self.device_battery = device_battery
 
@@ -120,16 +121,16 @@ class Screen_Summary:
 
 		self.textbox_6.text = "Vbat F {:.2f}".format(self.device_battery.get_vbat_feather())
 		
-		free_time_per_loop_s = self.mode_followpath.get_following_loop_speed() - proc_time_per_loop_s
+		free_time_per_loop_s = self.mode_config.get_following_loop_speed() - proc_time_per_loop_s
 		mytext = "Free: {:.1f} mS".format(round(free_time_per_loop_s*1000, 0))
 		if (free_time_per_loop_s < 0):
 			self.textbox_7.color = mycolors.RED
 		else:
 			self.textbox_7.color = mycolors.WHITE
 		self.textbox_7.text = mytext
-		
+
 		self.textbox_8.text = "Vbat M {:.2f}".format(self.device_battery.get_vbat_motor())	
-		mytext = "Loop: {:.0f} mS".format(round(self.mode_followpath.get_following_loop_speed()*1000, 0))		
+		mytext = "Loop: {:.0f} mS".format(round(self.mode_config.get_following_loop_speed()*1000, 0))		
 		self.textbox_9.text = mytext
 		self.textbox_10.text = "Creep: XX %"
 		self.textbox_11.text = "A / exit     B / save"

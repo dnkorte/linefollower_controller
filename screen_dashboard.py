@@ -58,8 +58,9 @@ GUTTER = 8	# gap between thottle boxes and line position box
 
 
 class Screen_Dashboard:
-	def __init__(self, tft_device):
+	def __init__(self, tft_device, mode_config):
 		self.this_tft = tft_device
+		self.mode_config = mode_config
 		self.screen_width = self.this_tft.display.width
 		self.screen_height = self.this_tft.display.height
 
@@ -129,33 +130,35 @@ class Screen_Dashboard:
 	# at entry throtval is -1 through +1
 	# displayed bar is green if positive throttle (forwards), red if negative (backwards)
 	def show_left_throttle(self, throtval=0):
-		self.left_throtval_box.y = 0
-		self.left_throtval_box.height = self.screen_height
-		self.left_throtval_box.fill = mycolors.DARK_GRAY
+		if (self.mode_config.get_showdisp() == "Yes"):
+			self.left_throtval_box.y = 0
+			self.left_throtval_box.height = self.screen_height
+			self.left_throtval_box.fill = mycolors.DARK_GRAY
 
-		throt_pixels_tall = abs(int(throtval * self.screen_height))
-		self.left_throtval_box.y = self.screen_height - throt_pixels_tall
-		self.left_throtval_box.height = throt_pixels_tall
-		if (throtval >= 0):
-			self.left_throtval_box.fill = mycolors.GREEN
-		else:
-			self.left_throtval_box.fill = mycolors.RED
+			throt_pixels_tall = abs(int(throtval * self.screen_height))
+			self.left_throtval_box.y = self.screen_height - throt_pixels_tall
+			self.left_throtval_box.height = throt_pixels_tall
+			if (throtval >= 0):
+				self.left_throtval_box.fill = mycolors.GREEN
+			else:
+				self.left_throtval_box.fill = mycolors.RED
 
 	# displays rectangle in right throttle gage block representing throttle value
 	# at entry throtval is -1 through +1
 	# displayed bar is green if positive throttle (forwards), red if negative (backwards)
 	def show_right_throttle(self, throtval=0):
-		self.right_throtval_box.y = 0
-		self.right_throtval_box.height = self.screen_height
-		self.right_throtval_box.fill = mycolors.DARK_GRAY
+		if (self.mode_config.get_showdisp() == "Yes"):
+			self.right_throtval_box.y = 0
+			self.right_throtval_box.height = self.screen_height
+			self.right_throtval_box.fill = mycolors.DARK_GRAY
 
-		throt_pixels_tall = abs(int(throtval * self.screen_height))
-		self.right_throtval_box.y = self.screen_height - throt_pixels_tall
-		self.right_throtval_box.height = throt_pixels_tall
-		if (throtval >= 0):
-			self.right_throtval_box.fill = mycolors.GREEN
-		else:
-			self.right_throtval_box.fill = mycolors.RED
+			throt_pixels_tall = abs(int(throtval * self.screen_height))
+			self.right_throtval_box.y = self.screen_height - throt_pixels_tall
+			self.right_throtval_box.height = throt_pixels_tall
+			if (throtval >= 0):
+				self.right_throtval_box.fill = mycolors.GREEN
+			else:
+				self.right_throtval_box.fill = mycolors.RED
 
 	# displays bal representing line position
 	# at entry line_position is 0-250 with 125=center
@@ -164,20 +167,21 @@ class Screen_Dashboard:
 	# ortherwise blue
 	# 
 	def show_line_position(self, line_position=125):
-		gage_box_width = self.screen_width - ( 2* (THROT_BOX_WIDTH + GUTTER))
-		half_width = (gage_box_width - BALL_RADIUS) / 2
-		pixels_per_count = half_width / 125		
+		if (self.mode_config.get_showdisp() == "Yes"):
+			gage_box_width = self.screen_width - ( 2* (THROT_BOX_WIDTH + GUTTER))
+			half_width = (gage_box_width - BALL_RADIUS) / 2
+			pixels_per_count = half_width / 125		
 
-		self.lineposition_marker.x = int(self.screen_width/2) + int(pixels_per_count * (line_position - 125)) - BALL_RADIUS
-		
-		if (abs(line_position - 125) < 30):
-			current_color = mycolors.GREEN
-		elif (abs(line_position - 125) < 90):
-			current_color = mycolors.ORANGE
-		else:
-			current_color = mycolors.BLUE
+			self.lineposition_marker.x = int(self.screen_width/2) + int(pixels_per_count * (line_position - 125)) - BALL_RADIUS
+			
+			if (abs(line_position - 125) < 30):
+				current_color = mycolors.GREEN
+			elif (abs(line_position - 125) < 90):
+				current_color = mycolors.ORANGE
+			else:
+				current_color = mycolors.BLUE
 
-		self.lineposition_marker.fill = current_color
+			self.lineposition_marker.fill = current_color
 
 	# this function hides the line position marker by turning it the same color as its background
 	def hide_line_position(self):

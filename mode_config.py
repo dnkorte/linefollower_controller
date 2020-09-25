@@ -8,8 +8,6 @@
 # Author(s): Don Korte
 # Module:  mode_config.py generates and manages a menu that presents
 #	various configuration parameters and allows user to change them
-#	Note that the actual reading and setting of the parameters is 
-#	handled by funcitons in the mode_followpath module
 #
 # github: https://github.com/dnkorte/linefollower_controller
 #
@@ -45,14 +43,32 @@ import time
 import mycolors
 
 class Mode_Config:
-	def __init__(self, tft_device, mode_followpath):
+	def __init__(self, tft_device):
 		self.this_tft = tft_device
-		self.mode_followpath = mode_followpath
 		self.currently_selected_list_item = 0
 		self.first_item_to_show = 0
 		self.currently_selected_list_item = 0
-		self.menu_items = [ ["Throttle", "THR"], ["Loop Speed", "LPS"], ["Rxn Rate", "RR"]]
+		self.menu_items = [ ["Throttle", "THR"], ["Loop Speed", "LPS"], ["Rxn Rate", "RR"], ["Runtime Disp", "DSP"] ]
 		self.num_of_menu_items = len(self.menu_items)
+
+		# menu options for configuration paramters
+		# initial testing suggests 0.4 throttle, 0.02 or 0.01 loop speed, 1.3 rxn rate
+		# 1.4 rxn rate is just a little bit too fast -- it overcorrects
+		# note that runtime display options consume about 4 mS per loop if enabled
+		self.throttle_options = [ 0.2, 0.3, 0.4, 0.5, 0.6, 0.7 ]
+		self.throttle_index = 2
+		self.loop_speed_options = [ 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2 ]
+		self.loop_speed_index = 1
+		self.rxn_rate_options = [ 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.3, 1.4 ] 
+		self.rxn_rate_index = 7
+		self.showdisp_options = [ "No", "Yes" ] 
+		self.showdisp_index = 1
+
+		# actual configuration parameters
+		self.following_throttle = self.throttle_options[self.throttle_index]
+		self.following_loop_speed = self.loop_speed_options[self.loop_speed_index]
+		self.following_rxn_rate = self.rxn_rate_options[self.rxn_rate_index]	# 1=super fast rxns; 0.2 = really sluggish
+		self.show_runtime_display = self.showdisp_options[self.showdisp_index]	# turning it off saves about 8 mS per loop
 
 		self.this_group = displayio.Group(max_size=10) 
 
@@ -143,7 +159,7 @@ class Mode_Config:
 			    	time.sleep(0.05)
 			    # print("released")
 			    temp = self._scroll_param(self.menu_items[self.currently_selected_list_item][1], -1)
-			    print(temp)
+			    #print(temp)
 			    mustUpdateValues = True
 
 			elif buttons.right:
@@ -155,7 +171,7 @@ class Mode_Config:
 			    	time.sleep(0.05)
 			    # print("released")
 			    temp = self._scroll_param(self.menu_items[self.currently_selected_list_item][1], +1)
-			    print(temp)
+			    #print(temp)
 			    mustUpdateValues = True
 
 			elif buttons.a:
@@ -226,22 +242,93 @@ class Mode_Config:
 
 	def _scroll_param(self, param, updown):
 		if (param == "THR"):
-			temp = self.mode_followpath.scroll_following_throttle(updown)
+			temp = self._scroll_following_throttle(updown)
 		elif (param == "LPS"):
-			temp = self.mode_followpath.scroll_following_loop_speed(updown)
+			temp = self._scroll_following_loop_speed(updown)
 		elif (param == "RR"):
-			temp = self.mode_followpath.scroll_following_rxn_rate(updown)
+			temp = self._scroll_following_rxn_rate(updown)
+		elif (param == "DSP"):
+			temp = self._scroll_showdisp(updown)
 		else:
 			temp = 0
 		return temp
 
 	def _get_param(self, param):
 		if (param == "THR"):
-			temp = self.mode_followpath.get_following_throttle()
+			temp = self.get_following_throttle()
 		elif (param == "LPS"):
-			temp = self.mode_followpath.get_following_loop_speed()
+			temp = self.get_following_loop_speed()
 		elif (param == "RR"):
-			temp = self.mode_followpath.get_following_rxn_rate()
+			temp = self.get_following_rxn_rate()
+		elif (param == "DSP"):
+			temp = self.get_showdisp()
 		else:
 			temp = 0
 		return temp
+
+
+	def get_following_throttle(self):
+		return self.following_throttle
+
+	# updown determines direction : (-) scrolls down, (+) scrolls up
+	def _scroll_following_throttle(self, updown):
+		if (updown < 0):
+			self.throttle_index -= 1
+			if (self.throttle_index < 0):
+				self.throttle_index = len(self.throttle_options) - 1
+		else:
+			self.throttle_index += 1
+			if (self.throttle_index > (len(self.throttle_options) - 1)):
+				self.throttle_index = 0
+		self.following_throttle = self.throttle_options[self.throttle_index]
+		return self.following_throttle
+
+
+
+	def get_following_loop_speed(self):
+		return self.following_loop_speed
+
+	# updown determines direction : (-) scrolls down, (+) scrolls up
+	def _scroll_following_loop_speed(self, updown):
+		if (updown < 0):
+			self.loop_speed_index -= 1
+			if (self.loop_speed_index < 0):
+				self.loop_speed_index = len(self.loop_speed_options) - 1
+		else:
+			self.loop_speed_index += 1
+			if (self.loop_speed_index > (len(self.loop_speed_options) - 1)):
+				self.loop_speed_index = 0
+		self.following_loop_speed = self.loop_speed_options[self.loop_speed_index]
+		return self.following_loop_speed
+
+
+	def get_following_rxn_rate(self):
+		return self.following_rxn_rate
+
+	# updown determines direction : (-) scrolls down, (+) scrolls up
+	def _scroll_following_rxn_rate(self, updown):
+		if (updown < 0):
+			self.rxn_rate_index -= 1
+			if (self.rxn_rate_index < 0):
+				self.rxn_rate_index = len(self.rxn_rate_options) - 1
+		else:
+			self.rxn_rate_index += 1
+			if (self.rxn_rate_index > (len(self.rxn_rate_options) - 1)):
+				self.rxn_rate_index = 0
+		self.following_rxn_rate = self.rxn_rate_options[self.rxn_rate_index]
+		return self.following_rxn_rate		
+
+	def get_showdisp(self):
+		return self.show_runtime_display
+
+	def _scroll_showdisp(self, updown):
+		if (updown < 0):
+			self.showdisp_index -= 1
+			if (self.showdisp_index < 0):
+				self.showdisp_index = len(self.showdisp_options) - 1
+		else:
+			self.showdisp_index += 1
+			if (self.showdisp_index > (len(self.showdisp_options) - 1)):
+				self.showdisp_index = 0
+		self.show_runtime_display = self.showdisp_options[self.showdisp_index]
+		return self.show_runtime_display	

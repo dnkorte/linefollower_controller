@@ -39,14 +39,17 @@ import mycolors
 
 
 class Mode_FollowPath:
-	def __init__(self, screen_dashboard, device_motors, device_linesense, device_storage):
+	def __init__(self, screen_dashboard, device_motors, device_linesense, device_storage, mode_config):
 		self.screen_dashboard = screen_dashboard
 		self.device_motors = device_motors
 		self.device_linesense = device_linesense
 		self.device_storage = device_storage
+		self.mode_config = mode_config
 		self.lineposition = 0	# initially say its in middle (-125 to +125)
 		self.throttle_left = 0	# -100 full back, +100=full fwd, 0=stopped
 		self.throttle_right = 0	# -100 full back, +100=full fwd, 0=stopped
+
+		# statistics to keep for summary screen and SD storage
 		self.run_number = 0		# run number since powerup
 		self.num_green = 0		# number of cycles in green range
 		self.num_left = 0		# number of cycles left of center (left of "green" range)
@@ -55,21 +58,6 @@ class Mode_FollowPath:
 		self.num_loops = 0		# total number of cycles (loops) on this run
 		self.total_proc_time = 0	# total seconds in all loops (processing time not including loopdelay)
 		self.total_run_time = 0	# total clock duration of run in seconds
-
-		# initial testing suggests 0.4 throttle, 0.02 or 0.01 loop speed, 1.3 rxn rate
-		# 1.4 rxn rate is just a little bit too fast -- it overcorrects
-		self.throttle_options = [ 0.2, 0.3, 0.4, 0.5, 0.6, 0.7 ]
-		self.throttle_index = 2
-		self.loop_speed_options = [ 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2 ]
-		self.loop_speed_index = 1
-		self.rxn_rate_options = [ 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.3, 1.4] 
-		self.rxn_rate_index = 7
-
-		# following equation coefficients (default values)
-		self.following_throttle = self.throttle_options[self.throttle_index]
-		self.following_loop_speed = self.loop_speed_options[self.loop_speed_index]
-		self.following_rxn_rate = self.rxn_rate_options[self.rxn_rate_index]	# 1=super fast rxns; 0.2 = really sluggish
-
 
 	# this function initiates mode, runs it till done, then returns text string indicating next mode
 	def run_mode(self):
@@ -92,9 +80,14 @@ class Mode_FollowPath:
 		self.total_proc_time = 0	# total seconds in all loops (not including loop_delay)
 		self.total_run_time = 0	# total clock duration of run in seconds
 		
+		if (self.mode_config.get_showdisp() == "No"):
+			self.screen_dashboard.hide_line_position()
+			self.screen_dashboard.set_text4("Runtime Display OFF")	
+			self.screen_dashboard.set_text5("to reduce process time")	
+
 		start_run_time = time.monotonic()
 
-		self.device_motors.motors_accelerate(self.following_throttle)
+		self.device_motors.motors_accelerate(self.mode_config.following_throttle)
 		while True:
 			start_loop_time = time.monotonic()
 			buttons = self.screen_dashboard.this_tft.buttons
@@ -117,8 +110,8 @@ class Mode_FollowPath:
 			self.lineposition = self.device_linesense.get_position()
 			self.screen_dashboard.show_line_position(self.lineposition)
 
-			curve = -1 * (self.lineposition - 125) / (125 / self.following_rxn_rate)
-			self.device_motors.move_forward_curved(self.following_throttle, curve)
+			curve = -1 * (self.lineposition - 125) / (125 / self.mode_config.following_rxn_rate)
+			self.device_motors.move_forward_curved(self.mode_config.following_throttle, curve)
 
 			# note that little numbers mean i'm LEFT of line (line is to my right)
 			# big numbers mean i'm RIGHT of line (line is to my left)
@@ -137,7 +130,7 @@ class Mode_FollowPath:
 			this_loop_duration = (end_loop_time - start_loop_time)
 			self.total_proc_time += this_loop_duration	# in fractional seconds
 
-			desired_sleep_time = self.following_loop_speed - this_loop_duration
+			desired_sleep_time = self.mode_config.following_loop_speed - this_loop_duration
 			if (desired_sleep_time < 0.001):
 				# if processing longer than desired loop set a very tiny sleep time just to let processor breathe...
 				desired_sleep_time = 0.001
@@ -179,56 +172,6 @@ class Mode_FollowPath:
 		self.screen_dashboard.set_text5("")		# clear out "starting soon"
 		return "READY"
 
-	def get_following_throttle(self):
-		return self.following_throttle
-
-	# updown determines direction : (-) scrolls down, (+) scrolls up
-	def scroll_following_throttle(self, updown):
-		if (updown < 0):
-			self.throttle_index -= 1
-			if (self.throttle_index < 0):
-				self.throttle_index = len(self.throttle_options) - 1
-		else:
-			self.throttle_index += 1
-			if (self.throttle_index > (len(self.throttle_options) - 1)):
-				self.throttle_index = 0
-		self.following_throttle = self.throttle_options[self.throttle_index]
-		return self.following_throttle
-
-
-
-	def get_following_loop_speed(self):
-		return self.following_loop_speed
-
-	# updown determines direction : (-) scrolls down, (+) scrolls up
-	def scroll_following_loop_speed(self, updown):
-		if (updown < 0):
-			self.loop_speed_index -= 1
-			if (self.loop_speed_index < 0):
-				self.loop_speed_index = len(self.loop_speed_options) - 1
-		else:
-			self.loop_speed_index += 1
-			if (self.loop_speed_index > (len(self.loop_speed_options) - 1)):
-				self.loop_speed_index = 0
-		self.following_loop_speed = self.loop_speed_options[self.loop_speed_index]
-		return self.following_loop_speed
-
-
-	def get_following_rxn_rate(self):
-		return self.following_rxn_rate
-
-	# updown determines direction : (-) scrolls down, (+) scrolls up
-	def scroll_following_rxn_rate(self, updown):
-		if (updown < 0):
-			self.rxn_rate_index -= 1
-			if (self.rxn_rate_index < 0):
-				self.rxn_rate_index = len(self.rxn_rate_options) - 1
-		else:
-			self.rxn_rate_index += 1
-			if (self.rxn_rate_index > (len(self.rxn_rate_options) - 1)):
-				self.rxn_rate_index = 0
-		self.following_rxn_rate = self.rxn_rate_options[self.rxn_rate_index]
-		return self.following_rxn_rate
 
 	def get_run_number(self):
 		return self.run_number	
