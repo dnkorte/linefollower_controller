@@ -53,7 +53,8 @@ class Mode_FollowPath:
 		self.num_right = 0		# number of cycles right of center (right of "green" range)
 		self.num_offtrack = 0	# number of cycles totally off the track (either direction)
 		self.num_loops = 0		# total number of cycles (loops) on this run
-		self.total_calc_time = 0	# total seconds in all loops (calc time not including loopdelay)
+		self.total_proc_time = 0	# total seconds in all loops (processing time not including loopdelay)
+		self.total_run_time = 0	# total clock duration of run in seconds
 
 		# initial testing suggests 0.4 throttle, 0.02 or 0.01 loop speed, 1.3 rxn rate
 		# 1.4 rxn rate is just a little bit too fast -- it overcorrects
@@ -88,11 +89,14 @@ class Mode_FollowPath:
 		self.num_right = 0		# number of cycles right of center (right of "green" range)
 		self.num_offtrack = 0	# number of cycles totally off the track (either direction)
 		self.num_loops = 0		# total number of cycles (loops) on this run
-		self.total_calc_time = 0	# total seconds in all loops (not including loop_delay)
+		self.total_proc_time = 0	# total seconds in all loops (not including loop_delay)
+		self.total_run_time = 0	# total clock duration of run in seconds
+		
+		start_run_time = time.monotonic()
 
 		self.device_motors.motors_accelerate(self.following_throttle)
 		while True:
-			start_time = time.monotonic()
+			start_loop_time = time.monotonic()
 			buttons = self.screen_dashboard.this_tft.buttons
 
 			if buttons.a:
@@ -103,8 +107,12 @@ class Mode_FollowPath:
 			    	still_pressed = buttons.a
 			    	time.sleep(0.05)
 			    # print("released")
-			    self.device_motors.motors_accelerate(0)
-			    return 
+
+				self.device_motors.motors_accelerate(0) 
+				end_run_time = time.monotonic()
+				self.total_run_time = (end_run_time - start_run_time)	# in fractional seconds
+				print("startrun:" + str(start_run_time) + " endrun:" + str(end_run_time) + " total:" + str(self.total_run_time))
+				return "MAINMENU"
 
 
 			self.lineposition = self.device_linesense.get_position()
@@ -112,7 +120,6 @@ class Mode_FollowPath:
 
 			curve = -1 * (self.lineposition - 125) / (125 / self.following_rxn_rate)
 			self.device_motors.move_forward_curved(self.following_throttle, curve)
-			# print("current line position:", self.lineposition, " curve:", curve)
 
 			# note that little numbers mean i'm LEFT of line (line is to my right)
 			# big numbers mean i'm RIGHT of line (line is to my left)
@@ -127,26 +134,12 @@ class Mode_FollowPath:
 				self.num_right += 1
 			self.num_loops += 1
 
-			#pct_on_track = int(100 * (self.num_loops - self.num_offtrack) / self.num_loops)
-			#if (pct_on_track > 85):
-			#	temp = mycolors.GREEN
-			#elif (pct_on_track > 50):
-			#	temp = mycolors.YELLOW
-			#else:
-			#	temp = mycolors.RED
-			# print(self.num_loops, self.num_offtrack, pct_on_track)
-			#self.screen_dashboard.set_text3(str(pct_on_track), temp, "C")
-
-			# temp = "L:" + str(self.num_left) + "   R:" + str(self.num_left)
-			# self.screen_dashboard.set_text1(temp, mycolors.RED, "C")
-
-			end_time = time.monotonic()		# typically about 0.021 sec (0.016 if no "pct_on_track" disp)
-			self.total_calc_time += (end_time - start_time)
-			print(end_time - start_time)
+			end_loop_time = time.monotonic()		# typically about 0.021 sec (0.016 if no "pct_on_track" disp)
+			self.total_proc_time += (end_loop_time - start_loop_time)	# in fractional seconds
+			# note should actually calculate how much time really needed based on desired loop - calc proc time
 			time.sleep(self.following_loop_speed) 
 
-		# add a run summary screen here... (and eventually SD card storage)
-		return "MAINMENU"
+
 
 
 	def prepare_to_start(self):
@@ -231,3 +224,27 @@ class Mode_FollowPath:
 				self.rxn_rate_index = 0
 		self.following_rxn_rate = self.rxn_rate_options[self.rxn_rate_index]
 		return self.following_rxn_rate
+
+	def get_run_number(self):
+		return self.run_number	
+
+	def get_num_green(self):
+		return self.num_green	
+
+	def get_num_left(self):
+		return self.num_left	
+
+	def get_num_right(self):
+		return self.num_right	
+
+	def get_num_offtrack(self):
+		return self.num_offtrack	
+
+	def get_num_loops(self):
+		return self.num_loops	
+
+	def get_total_proc_time(self):
+		return self.total_proc_time	
+
+	def get_total_run_time(self):
+		return self.total_run_time	

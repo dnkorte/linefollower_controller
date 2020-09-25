@@ -42,13 +42,14 @@ import time
 import mycolors
 
 class Screen_Menu:
-	def __init__(self, tft_device, menu_items, device_linesense):
+	def __init__(self, tft_device, menu_items, device_linesense, device_battery):
 		self.this_tft = tft_device
 		self.menu_items = menu_items
 		self.num_of_menu_items = len(menu_items)
 		self.first_item_to_show = 0
 		self.currently_selected_list_item = 0
 		self.device_linesense = device_linesense
+		self.device_battery = device_battery
 
 		self.this_group = displayio.Group(max_size=10) 
 
@@ -70,8 +71,11 @@ class Screen_Menu:
 		self.textbox_6 = label.Label(terminalio.FONT, text= "", max_glyphs=36, color=mycolors.GRAY, x=12, y=66)
 		self.this_group.append(self.textbox_6)
 
-		self.textbox_cal = label.Label(terminalio.FONT, text= "", max_glyphs=6, color=mycolors.RED, x=130, y=0)
+		self.textbox_cal = label.Label(terminalio.FONT, text= "", max_glyphs=6, color=mycolors.RED, x=125, y=0)
 		self.this_group.append(self.textbox_cal)
+
+		self.textbox_bat = label.Label(terminalio.FONT, text= "", max_glyphs=6, color=mycolors.GREEN, x=125, y=14)
+		self.this_group.append(self.textbox_bat)
 
 		self.textbox_3.text = self.menu_items[0][0]
 		self.textbox_3.color = mycolors.WHITE
@@ -94,6 +98,13 @@ class Screen_Menu:
 		else:
 			self.textbox_cal.text = "NOCAL"
 			self.textbox_cal.color = mycolors.RED
+
+		vbat_motor = self.device_battery.get_vbat_motor()
+		self.textbox_bat.text = "{:.2f}v".format(vbat_motor)
+		if (vbat_motor < 5.4):
+			self.textbox_bat.color = mycolors.ORANGE
+		else:
+			self.textbox_bat.color = mycolors.GREEN
 
 		while True:
 			# note possibilities are buttons.up buttons.down buttons.left buttons.right buttons.select buttons.a buttons.b

@@ -39,6 +39,7 @@ from adafruit_featherwing import minitft_featherwing
 # from mode_mainmenu import Mode_MainMenu
 from screen_menu import Screen_Menu
 from screen_dashboard import Screen_Dashboard
+from screen_summary import Screen_Summary
 from mode_config import Mode_Config
 from mode_followpath import Mode_FollowPath
 from mode_driveshapes import Mode_DriveShapes
@@ -47,6 +48,7 @@ from mode_config import Mode_Config
 from device_motors import Device_Motors
 from device_linesense import Device_LineSense
 from device_storage import Device_Storage
+from device_battery import Device_Battery
 
 
 # create instance for TFT board
@@ -61,6 +63,7 @@ screen_dashboard = Screen_Dashboard(minitft)
 device_motors = Device_Motors(screen_dashboard)
 device_linesense = Device_LineSense(screen_dashboard)
 device_storage = Device_Storage()
+device_battery = Device_Battery()
 
 # create instances of mode handlers
 # 
@@ -71,17 +74,19 @@ device_storage = Device_Storage()
 #    
 mainmenu_items = [ ["Calibrate Sensors", "CAL"], ["Follow Path", "PATH"], 
     ["Setup Parameters", "SETUP"], ["Display Linesensor", "DISPSENS"] ]
-screen_menu = Screen_Menu(minitft, mainmenu_items, device_linesense)
+screen_menu = Screen_Menu(minitft, mainmenu_items, device_linesense, device_battery)
 
 mode_followpath = Mode_FollowPath(screen_dashboard, device_motors, device_linesense, device_storage)
 mode_driveshapes = Mode_DriveShapes(screen_dashboard, device_motors, device_linesense, device_storage)
 mode_calibrate = Mode_Calibrate(screen_dashboard, device_motors, device_linesense, device_storage)
 mode_config = Mode_Config(minitft, mode_followpath)
+screen_summary = Screen_Summary(minitft, mode_followpath, device_storage, device_battery)
 
 next_mode = "MAINMENU"
 while True:
     if (next_mode == "PATH"):
-        next_mode = mode_followpath.run_mode()
+        mode_followpath.run_mode()
+        screen_summary.run_mode()
         next_mode="MAINMENU"
 
     elif (next_mode == "CAL"):
