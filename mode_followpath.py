@@ -111,7 +111,6 @@ class Mode_FollowPath:
 				self.device_motors.motors_accelerate(0) 
 				end_run_time = time.monotonic()
 				self.total_run_time = (end_run_time - start_run_time)	# in fractional seconds
-				print("startrun:" + str(start_run_time) + " endrun:" + str(end_run_time) + " total:" + str(self.total_run_time))
 				return "MAINMENU"
 
 
@@ -135,9 +134,15 @@ class Mode_FollowPath:
 			self.num_loops += 1
 
 			end_loop_time = time.monotonic()		# typically about 0.021 sec (0.016 if no "pct_on_track" disp)
-			self.total_proc_time += (end_loop_time - start_loop_time)	# in fractional seconds
-			# note should actually calculate how much time really needed based on desired loop - calc proc time
-			time.sleep(self.following_loop_speed) 
+			this_loop_duration = (end_loop_time - start_loop_time)
+			self.total_proc_time += this_loop_duration	# in fractional seconds
+
+			desired_sleep_time = self.following_loop_speed - this_loop_duration
+			if (desired_sleep_time < 0.001):
+				# if processing longer than desired loop set a very tiny sleep time just to let processor breathe...
+				desired_sleep_time = 0.001
+			#print("proc:", this_loop_duration, " loop:", self.following_loop_speed, " sleep for:", desired_sleep_time)
+			time.sleep(desired_sleep_time) 
 
 
 

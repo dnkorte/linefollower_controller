@@ -122,8 +122,12 @@ class Screen_Summary:
 		
 		free_time_per_loop_s = self.mode_followpath.get_following_loop_speed() - proc_time_per_loop_s
 		mytext = "Free: {:.1f} mS".format(round(free_time_per_loop_s*1000, 0))
-
+		if (free_time_per_loop_s < 0):
+			self.textbox_7.color = mycolors.RED
+		else:
+			self.textbox_7.color = mycolors.WHITE
 		self.textbox_7.text = mytext
+		
 		self.textbox_8.text = "Vbat M {:.2f}".format(self.device_battery.get_vbat_motor())	
 		mytext = "Loop: {:.0f} mS".format(round(self.mode_followpath.get_following_loop_speed()*1000, 0))		
 		self.textbox_9.text = mytext

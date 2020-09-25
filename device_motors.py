@@ -164,7 +164,7 @@ class Device_Motors:
 				self.motorR.throttle = self.current_throt_right * self.motorCalibrateR
 				self.screen_dashboard.show_left_throttle(self.current_throt_left)
 				self.screen_dashboard.show_right_throttle(self.current_throt_right)
-				print("stepping up:", self.current_throt_left)
+				# print("stepping up:", self.current_throt_left)
 				time.sleep(0.1)
 		else:
 			# will have to go in steps, and the will be steps UP
@@ -175,7 +175,7 @@ class Device_Motors:
 				self.motorR.throttle = self.current_throt_right * self.motorCalibrateR
 				self.screen_dashboard.show_left_throttle(self.current_throt_left)
 				self.screen_dashboard.show_right_throttle(self.current_throt_right)
-				print("stepping down:", self.current_throt_left)
+				# print("stepping down:", self.current_throt_left)
 				time.sleep(0.1)
 
 		self.current_throt_left = targetThrottle

@@ -106,5 +106,5 @@ class Device_LineSense:
 		time.sleep(0.001 * self.read_delay)		# give it time to finish
 		self.device_registers = self._read_7()	# read the result
 		self.position = self.device_registers[5]	
-		print("raw position:", self.position)
+		# print("raw position:", self.position)
 		return self.position  
