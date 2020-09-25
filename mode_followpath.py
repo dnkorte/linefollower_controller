@@ -88,6 +88,7 @@ class Mode_FollowPath:
 		start_run_time = time.monotonic()
 
 		self.device_motors.motors_accelerate(self.mode_config.following_throttle)
+		self.device_linesense.start_quickposition_check()	# initiate first linesens
 		while True:
 			start_loop_time = time.monotonic()
 			buttons = self.screen_dashboard.this_tft.buttons
@@ -106,8 +107,13 @@ class Mode_FollowPath:
 				self.total_run_time = (end_run_time - start_run_time)	# in fractional seconds
 				return "MAINMENU"
 
+			# slow, normal way...
+			#self.lineposition = self.device_linesense.get_position()
 
-			self.lineposition = self.device_linesense.get_position()
+			while(not self.device_linesense.is_quickposition_ready()):
+				pass
+			self.lineposition = self.device_linesense.get_quickposition()
+			self.device_linesense.start_quickposition_check()	# initiate next read (for next loop)
 			self.screen_dashboard.show_line_position(self.lineposition)
 
 			curve = -1 * (self.lineposition - 125) / (125 / self.mode_config.following_rxn_rate)

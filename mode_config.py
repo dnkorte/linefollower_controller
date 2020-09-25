@@ -57,8 +57,8 @@ class Mode_Config:
 		# note that runtime display options consume about 4 mS per loop if enabled
 		self.throttle_options = [ 0.2, 0.3, 0.4, 0.5, 0.6, 0.7 ]
 		self.throttle_index = 2
-		self.loop_speed_options = [ 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2 ]
-		self.loop_speed_index = 1
+		self.loop_speed_options = [ 0.012, 0.015, 0.018, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2 ]
+		self.loop_speed_index = 3
 		self.rxn_rate_options = [ 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.3, 1.4 ] 
 		self.rxn_rate_index = 7
 		self.showdisp_options = [ "No", "Yes" ] 

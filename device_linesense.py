@@ -60,6 +60,8 @@ class Device_LineSense:
 		if (self.module_id != 83):
 			raise RuntimeError("Line Sensor is not the expected module")
 		self.screen_dashboard = screen_dashboard
+		self.read_in_process = False
+		self.read_will_be_ready_at = 0
 
 		print("sensor type:", self.sensor_type)
 		print("read_delay:", self.read_delay)
@@ -106,5 +108,25 @@ class Device_LineSense:
 		time.sleep(0.001 * self.read_delay)		# give it time to finish
 		self.device_registers = self._read_7()	# read the result
 		self.position = self.device_registers[5]	
+		# print("raw position:", self.position)
+		return self.position
+
+	# returns signed integer 0 => +250; 125 indicates line is centered
+	# position < 125 indicate steer left is suggested
+	# position > 125  indicate steer right is suggested
+	def start_quickposition_check(self):
+		self._write_cmd(0x02)					# initiate read
+		self.read_in_process = True
+		self.read_will_be_ready_at = time.monotonic() + (0.001 * self.read_delay)
+
+	def is_quickposition_ready(self):
+		if (time.monotonic() > self.read_will_be_ready_at):
+			return True
+		return False
+
+	def get_quickposition(self):
+		self.device_registers = self._read_7()	# read the result
+		self.position = self.device_registers[5]
+		self.read_in_process = False	
 		# print("raw position:", self.position)
 		return self.position  
