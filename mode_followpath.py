@@ -35,6 +35,7 @@
 # 
 """
 import time
+import math
 import mycolors
 
 
@@ -55,6 +56,7 @@ class Mode_FollowPath:
 		self.num_left = 0		# number of cycles left of center (left of "green" range)
 		self.num_right = 0		# number of cycles right of center (right of "green" range)
 		self.num_offtrack = 0	# number of cycles totally off the track (either direction)
+		self.num_rxn_limit = 0	# number of cycles that rxn_rate_limit is surpassed
 		self.num_loops = 0		# total number of cycles (loops) on this run
 		self.total_proc_time = 0	# total seconds in all loops (processing time not including loopdelay)
 		self.total_run_time = 0	# total clock duration of run in seconds
@@ -76,6 +78,7 @@ class Mode_FollowPath:
 		self.num_left = 0		# number of cycles left of center (left of "green" range)
 		self.num_right = 0		# number of cycles right of center (right of "green" range)
 		self.num_offtrack = 0	# number of cycles totally off the track (either direction)
+		self.num_rxn_limit = 0	# number of cycles that rxn_rate_limit is surpassed
 		self.num_loops = 0		# total number of cycles (loops) on this run
 		self.total_proc_time = 0	# total seconds in all loops (not including loop_delay)
 		self.total_run_time = 0	# total clock duration of run in seconds
@@ -117,6 +120,10 @@ class Mode_FollowPath:
 			self.screen_dashboard.show_line_position(self.lineposition)
 
 			curve = -1 * (self.lineposition - 125) / (125 / self.mode_config.following_rxn_rate)
+			if (abs(curve) > self.mode_config.following_rxn_limit):
+				curve = math.copysign(self.mode_config.following_rxn_limit, curve)
+				self.num_rxn_limit += 1
+
 			self.device_motors.move_forward_curved(self.mode_config.following_throttle, curve)
 
 			# note that little numbers mean i'm LEFT of line (line is to my right)
@@ -192,7 +199,10 @@ class Mode_FollowPath:
 		return self.num_right	
 
 	def get_num_offtrack(self):
-		return self.num_offtrack	
+		return self.num_offtrack
+
+	def get_num_rxn_limit(self):
+		return self.num_rxn_limit		
 
 	def get_num_loops(self):
 		return self.num_loops	

@@ -132,7 +132,13 @@ class Screen_Summary:
 		self.textbox_8.text = "Vbat M {:.2f}".format(self.device_battery.get_vbat_motor())	
 		mytext = "Loop: {:.0f} mS".format(round(self.mode_config.get_following_loop_speed()*1000, 0))		
 		self.textbox_9.text = mytext
-		self.textbox_10.text = "Creep: XX %"
+
+		#self.textbox_10.text = "Creep: XX %"
+		temp = int(100 * self.mode_followpath.get_num_rxn_limit() / self.mode_followpath.get_num_loops())
+		mytext = "RxnLim: {0:d}".format(temp)
+		self.textbox_10.text = mytext
+
+
 		self.textbox_11.text = "A / exit     B / save"
 
 		while True:

@@ -48,7 +48,8 @@ class Mode_Config:
 		self.currently_selected_list_item = 0
 		self.first_item_to_show = 0
 		self.currently_selected_list_item = 0
-		self.menu_items = [ ["Throttle", "THR"], ["Loop Speed", "LPS"], ["Rxn Rate", "RR"], ["Runtime Disp", "DSP"] ]
+		self.menu_items = [ ["Throttle", "THR"], ["Loop Speed", "LPS"], ["Rxn Rate", "RR"], 
+			["Rxn Limit", "RL"], ["Runtime Disp", "DSP"] ]
 		self.num_of_menu_items = len(self.menu_items)
 
 		# menu options for configuration paramters
@@ -59,8 +60,10 @@ class Mode_Config:
 		self.throttle_index = 2
 		self.loop_speed_options = [ 0.012, 0.015, 0.018, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2 ]
 		self.loop_speed_index = 3
-		self.rxn_rate_options = [ 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.3, 1.4 ] 
+		self.rxn_rate_options = [ 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.3, 1.4, 1.6, 1.8, 2.0, 3.0 ] 
 		self.rxn_rate_index = 7
+		self.rxn_limit_options = [ 0.8, 0.9, 1.0, 1.2, 1.3, 1.4, 1.8, 2.0, 3.0 ] 
+		self.rxn_limit_index = 7
 		self.showdisp_options = [ "No", "Yes" ] 
 		self.showdisp_index = 1
 
@@ -68,6 +71,7 @@ class Mode_Config:
 		self.following_throttle = self.throttle_options[self.throttle_index]
 		self.following_loop_speed = self.loop_speed_options[self.loop_speed_index]
 		self.following_rxn_rate = self.rxn_rate_options[self.rxn_rate_index]	# 1=super fast rxns; 0.2 = really sluggish
+		self.following_rxn_limit = self.rxn_limit_options[self.rxn_limit_index]	# can limit big swings even if high gain (rate)
 		self.show_runtime_display = self.showdisp_options[self.showdisp_index]	# turning it off saves about 8 mS per loop
 
 		self.this_group = displayio.Group(max_size=10) 
@@ -247,6 +251,8 @@ class Mode_Config:
 			temp = self._scroll_following_loop_speed(updown)
 		elif (param == "RR"):
 			temp = self._scroll_following_rxn_rate(updown)
+		elif (param == "RL"):
+			temp = self._scroll_following_rxn_limit(updown)
 		elif (param == "DSP"):
 			temp = self._scroll_showdisp(updown)
 		else:
@@ -260,6 +266,8 @@ class Mode_Config:
 			temp = self.get_following_loop_speed()
 		elif (param == "RR"):
 			temp = self.get_following_rxn_rate()
+		elif (param == "RL"):
+			temp = self.get_following_rxn_limit()
 		elif (param == "DSP"):
 			temp = self.get_showdisp()
 		else:
@@ -317,6 +325,22 @@ class Mode_Config:
 				self.rxn_rate_index = 0
 		self.following_rxn_rate = self.rxn_rate_options[self.rxn_rate_index]
 		return self.following_rxn_rate		
+
+	def get_following_rxn_limit(self):
+		return self.following_rxn_limit
+
+	# updown determines direction : (-) scrolls down, (+) scrolls up
+	def _scroll_following_rxn_limit(self, updown):
+		if (updown < 0):
+			self.rxn_limit_index -= 1
+			if (self.rxn_limit_index < 0):
+				self.rxn_limit_index = len(self.rxn_limit_options) - 1
+		else:
+			self.rxn_limit_index += 1
+			if (self.rxn_limit_index > (len(self.rxn_limit_options) - 1)):
+				self.rxn_limit_index = 0
+		self.following_rxn_limit = self.rxn_limit_options[self.rxn_limit_index]
+		return self.following_rxn_limit	
 
 	def get_showdisp(self):
 		return self.show_runtime_display
