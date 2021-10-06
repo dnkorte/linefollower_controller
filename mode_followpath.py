@@ -7,7 +7,7 @@
 #
 # Author(s): Don Korte
 # Module:  mode_followpath.py has the code that controls the actual
-#	path-following driving algorithm
+#   path-following driving algorithm
 #
 # github: https://github.com/dnkorte/linefollower_controller
 #
@@ -40,175 +40,190 @@ import mycolors
 
 
 class Mode_FollowPath:
-	def __init__(self, screen_dashboard, device_motors, device_linesense, device_storage, mode_config):
-		self.screen_dashboard = screen_dashboard
-		self.device_motors = device_motors
-		self.device_linesense = device_linesense
-		self.device_storage = device_storage
-		self.mode_config = mode_config
-		self.lineposition = 0	# initially say its in middle (-125 to +125)
-		self.throttle_left = 0	# -100 full back, +100=full fwd, 0=stopped
-		self.throttle_right = 0	# -100 full back, +100=full fwd, 0=stopped
+    def __init__(
+        self,
+        screen_dashboard,
+        device_motors,
+        device_linesense,
+        device_storage,
+        mode_config,
+    ):
+        self.screen_dashboard = screen_dashboard
+        self.device_motors = device_motors
+        self.device_linesense = device_linesense
+        self.device_storage = device_storage
+        self.mode_config = mode_config
+        self.lineposition = 0  # initially say its in middle (-125 to +125)
+        self.throttle_left = 0  # -100 full back, +100=full fwd, 0=stopped
+        self.throttle_right = 0  # -100 full back, +100=full fwd, 0=stopped
 
-		# statistics to keep for summary screen and SD storage
-		self.run_number = 0		# run number since powerup
-		self.num_green = 0		# number of cycles in green range
-		self.num_left = 0		# number of cycles left of center (left of "green" range)
-		self.num_right = 0		# number of cycles right of center (right of "green" range)
-		self.num_offtrack = 0	# number of cycles totally off the track (either direction)
-		self.num_rxn_limit = 0	# number of cycles that rxn_rate_limit is surpassed
-		self.num_loops = 0		# total number of cycles (loops) on this run
-		self.total_proc_time = 0	# total seconds in all loops (processing time not including loopdelay)
-		self.total_run_time = 0	# total clock duration of run in seconds
+        # statistics to keep for summary screen and SD storage
+        self.run_number = 0  # run number since powerup
+        self.num_green = 0  # number of cycles in green range
+        self.num_left = 0  # number of cycles left of center (left of "green" range)
+        self.num_right = 0  # number of cycles right of center (right of "green" range)
+        self.num_offtrack = (
+            0  # number of cycles totally off the track (either direction)
+        )
+        self.num_rxn_limit = 0  # number of cycles that rxn_rate_limit is surpassed
+        self.num_loops = 0  # total number of cycles (loops) on this run
+        self.total_proc_time = (
+            0  # total seconds in all loops (processing time not including loopdelay)
+        )
+        self.total_run_time = 0  # total clock duration of run in seconds
 
-	# this function initiates mode, runs it till done, then returns text string indicating next mode
-	def run_mode(self):
-		self.screen_dashboard.show_this_screen()
-		self.run_number += 1
-		status = self.prepare_to_start()
-		if (status == "CANCEL"):
-			return "MAINMENU"
-		self.screen_dashboard.set_text1("", mycolors.RED, "C")		
-		self.screen_dashboard.set_text2("Click A to quit")	
-		self.screen_dashboard.set_text3("", mycolors.PINK, "C")	
-		self.screen_dashboard.set_text4("")	
-		self.screen_dashboard.set_text5("")	
+    # this function initiates mode, runs it till done, then returns text string indicating next mode
+    def run_mode(self):
+        self.screen_dashboard.show_this_screen()
+        self.run_number += 1
+        status = self.prepare_to_start()
+        if status == "CANCEL":
+            return "MAINMENU"
+        self.screen_dashboard.set_text1("", mycolors.RED, "C")
+        self.screen_dashboard.set_text2("Click A to quit")
+        self.screen_dashboard.set_text3("", mycolors.PINK, "C")
+        self.screen_dashboard.set_text4("")
+        self.screen_dashboard.set_text5("")
 
-		self.num_green = 0		# number of cycles in green range
-		self.num_left = 0		# number of cycles left of center (left of "green" range)
-		self.num_right = 0		# number of cycles right of center (right of "green" range)
-		self.num_offtrack = 0	# number of cycles totally off the track (either direction)
-		self.num_rxn_limit = 0	# number of cycles that rxn_rate_limit is surpassed
-		self.num_loops = 0		# total number of cycles (loops) on this run
-		self.total_proc_time = 0	# total seconds in all loops (not including loop_delay)
-		self.total_run_time = 0	# total clock duration of run in seconds
-		
-		if (self.mode_config.get_showdisp() == "No"):
-			self.screen_dashboard.hide_line_position()
-			self.screen_dashboard.set_text4("Runtime Display OFF")	
-			self.screen_dashboard.set_text5("to reduce process time")	
+        self.num_green = 0  # number of cycles in green range
+        self.num_left = 0  # number of cycles left of center (left of "green" range)
+        self.num_right = 0  # number of cycles right of center (right of "green" range)
+        self.num_offtrack = (
+            0  # number of cycles totally off the track (either direction)
+        )
+        self.num_rxn_limit = 0  # number of cycles that rxn_rate_limit is surpassed
+        self.num_loops = 0  # total number of cycles (loops) on this run
+        self.total_proc_time = (
+            0  # total seconds in all loops (not including loop_delay)
+        )
+        self.total_run_time = 0  # total clock duration of run in seconds
 
-		start_run_time = time.monotonic()
+        if self.mode_config.get_showdisp() == "No":
+            self.screen_dashboard.hide_line_position()
+            self.screen_dashboard.set_text4("Runtime Display OFF")
+            self.screen_dashboard.set_text5("to reduce process time")
 
-		self.device_motors.motors_accelerate(self.mode_config.following_throttle)
-		self.device_linesense.start_quickposition_check()	# initiate first linesens
-		while True:
-			start_loop_time = time.monotonic()
-			buttons = self.screen_dashboard.this_tft.buttons
+        start_run_time = time.monotonic()
 
-			if buttons.a:
-			    # print("Button A cycle")
-			    still_pressed = True
-			    while  still_pressed:
-			    	buttons = self.screen_dashboard.this_tft.buttons
-			    	still_pressed = buttons.a
-			    	time.sleep(0.05)
-			    # print("released")
+        self.device_motors.motors_accelerate(self.mode_config.throttle)
+        self.device_linesense.start_quickposition_check()  # initiate first linesens
+        while True:
+            start_loop_time = time.monotonic()
+            buttons = self.screen_dashboard.this_tft.buttons
 
-				self.device_motors.motors_accelerate(0) 
-				end_run_time = time.monotonic()
-				self.total_run_time = (end_run_time - start_run_time)	# in fractional seconds
-				return "MAINMENU"
+            if buttons.a:
+                # print("Button A cycle")
+                still_pressed = True
+                while still_pressed:
+                    buttons = self.screen_dashboard.this_tft.buttons
+                    still_pressed = buttons.a
+                    time.sleep(0.05)
+                # print("released")
 
-			# slow, normal way...
-			#self.lineposition = self.device_linesense.get_position()
+                self.device_motors.motors_accelerate(0)
+                end_run_time = time.monotonic()
+                # calculate work length of this run loop in fractional seconds
+                self.total_run_time = end_run_time - start_run_time
+                return "MAINMENU"
 
-			while(not self.device_linesense.is_quickposition_ready()):
-				pass
-			self.lineposition = self.device_linesense.get_quickposition()
-			self.device_linesense.start_quickposition_check()	# initiate next read (for next loop)
-			self.screen_dashboard.show_line_position(self.lineposition)
+            # slow, normal way...
+            # self.lineposition = self.device_linesense.get_position()
 
-			curve = -1 * (self.lineposition - 125) / (125 / self.mode_config.following_rxn_rate)
-			if (abs(curve) > self.mode_config.following_rxn_limit):
-				curve = math.copysign(self.mode_config.following_rxn_limit, curve)
-				self.num_rxn_limit += 1
+            while not self.device_linesense.is_quickposition_ready():
+                pass
+            self.lineposition = self.device_linesense.get_quickposition()
+            # initiate next read (for next loop)
+            self.device_linesense.start_quickposition_check()
+            self.screen_dashboard.show_line_position(self.lineposition)
 
-			self.device_motors.move_forward_curved(self.mode_config.following_throttle, curve)
+            curve = -1 * (self.lineposition - 125) / (125 / self.mode_config.rxn_rate)
+            if abs(curve) > self.mode_config.rxn_limit:
+                curve = math.copysign(self.mode_config.rxn_limit, curve)
+                self.num_rxn_limit += 1
 
-			# note that little numbers mean i'm LEFT of line (line is to my right)
-			# big numbers mean i'm RIGHT of line (line is to my left)
-			# numbers < 5 or > 245 are basically OFF the line
-			if (abs(self.lineposition - 125) < 30):
-				self.num_green += 1
-			if ((self.lineposition < 5) or (self.lineposition > 245)):
-				self.num_offtrack += 1
-			if (self.lineposition < 95):
-				self.num_left += 1
-			if (self.lineposition > 155):
-				self.num_right += 1
-			self.num_loops += 1
+            self.device_motors.move_forward_curved(self.mode_config.throttle, curve)
 
-			end_loop_time = time.monotonic()		# typically about 0.021 sec (0.016 if no "pct_on_track" disp)
-			this_loop_duration = (end_loop_time - start_loop_time)
-			self.total_proc_time += this_loop_duration	# in fractional seconds
+            # note that little numbers mean i'm LEFT of line (line is to my right)
+            # big numbers mean i'm RIGHT of line (line is to my left)
+            # numbers < 5 or > 245 are basically OFF the line
+            if abs(self.lineposition - 125) < 30:
+                self.num_green += 1
+            if (self.lineposition < 5) or (self.lineposition > 245):
+                self.num_offtrack += 1
+            if self.lineposition < 95:
+                self.num_left += 1
+            if self.lineposition > 155:
+                self.num_right += 1
+            self.num_loops += 1
 
-			desired_sleep_time = self.mode_config.following_loop_speed - this_loop_duration
-			if (desired_sleep_time < 0.001):
-				# if processing longer than desired loop set a very tiny sleep time just to let processor breathe...
-				desired_sleep_time = 0.001
-			#print("proc:", this_loop_duration, " loop:", self.following_loop_speed, " sleep for:", desired_sleep_time)
-			time.sleep(desired_sleep_time) 
+            end_loop_time = time.monotonic()
+            this_loop_duration = end_loop_time - start_loop_time
+            self.total_proc_time += this_loop_duration  # in fractional seconds
 
+            desired_sleep_time = self.mode_config.loop_speed - this_loop_duration
+            if desired_sleep_time < 0.001:
+                # if processing longer than desired loop set a very tiny
+                # sleep time just to let processor breathe...
+                desired_sleep_time = 0.001
+            time.sleep(desired_sleep_time)
 
+    def prepare_to_start(self):
+        self.screen_dashboard.show_L_throttle(0)
+        self.screen_dashboard.show_R_throttle(0)
+        # self.screen_dashboard.hide_line_position()
 
+        self.screen_dashboard.set_text1("Place robot on track")
+        self.screen_dashboard.set_text2("with sensor over line")
+        temp = "Run # " + str(self.run_number)
+        self.screen_dashboard.set_text4(temp, mycolors.WHITE, "L")
+        self.screen_dashboard.set_text5("Starting Soon", mycolors.WHITE, "L")
 
-	def prepare_to_start(self):
-		self.screen_dashboard.show_left_throttle(0)
-		self.screen_dashboard.show_right_throttle(0)
-		# self.screen_dashboard.hide_line_position()
+        time_til_start = 5
+        while time_til_start > 0:
+            self.screen_dashboard.set_text3(
+                "    " + str(time_til_start), mycolors.PINK, "R"
+            )
+            time_til_start -= 1
+            # now wait 1 second, but check for "A" button cancel every 0.1 sec
+            for i in range(10):
+                buttons = self.screen_dashboard.this_tft.buttons
+                if buttons.a:
+                    still_pressed = True
+                    while still_pressed:
+                        buttons = self.screen_dashboard.this_tft.buttons
+                        still_pressed = buttons.a
+                        time.sleep(0.05)
+                    # print("released")
+                    return "CANCEL"
+                time.sleep(0.1)
 
-		self.screen_dashboard.set_text1("Place robot on track")		
-		self.screen_dashboard.set_text2("with sensor over line")
-		temp = "Run # " + str(self.run_number)	
-		self.screen_dashboard.set_text4(temp, mycolors.WHITE, "L")
-		self.screen_dashboard.set_text5("Starting Soon", mycolors.WHITE, "L")
+        self.screen_dashboard.set_text4("")  # clear out run number
+        self.screen_dashboard.set_text5("")  # clear out "starting soon"
+        return "READY"
 
-		time_til_start = 5
-		while(time_til_start > 0):
-			self.screen_dashboard.set_text3("    "+str(time_til_start), mycolors.PINK, "R")
-			time_til_start -= 1
-			# now wait 1 second, but check for "A" button cancel every 0.1 seconds
-			for i in range(10):	
-				buttons = self.screen_dashboard.this_tft.buttons
-				if buttons.a:
-				    still_pressed = True
-				    while  still_pressed:
-				    	buttons = self.screen_dashboard.this_tft.buttons
-				    	still_pressed = buttons.a
-				    	time.sleep(0.05)
-				    # print("released")
-				    return "CANCEL"
-				time.sleep(0.1)
+    def get_run_number(self):
+        return self.run_number
 
-		self.screen_dashboard.set_text4("")		# clear out run number
-		self.screen_dashboard.set_text5("")		# clear out "starting soon"
-		return "READY"
+    def get_num_green(self):
+        return self.num_green
 
+    def get_num_left(self):
+        return self.num_left
 
-	def get_run_number(self):
-		return self.run_number	
+    def get_num_right(self):
+        return self.num_right
 
-	def get_num_green(self):
-		return self.num_green	
+    def get_num_offtrack(self):
+        return self.num_offtrack
 
-	def get_num_left(self):
-		return self.num_left	
+    def get_num_rxn_limit(self):
+        return self.num_rxn_limit
 
-	def get_num_right(self):
-		return self.num_right	
+    def get_num_loops(self):
+        return self.num_loops
 
-	def get_num_offtrack(self):
-		return self.num_offtrack
+    def get_total_proc_time(self):
+        return self.total_proc_time
 
-	def get_num_rxn_limit(self):
-		return self.num_rxn_limit		
-
-	def get_num_loops(self):
-		return self.num_loops	
-
-	def get_total_proc_time(self):
-		return self.total_proc_time	
-
-	def get_total_run_time(self):
-		return self.total_run_time	
+    def get_total_run_time(self):
+        return self.total_run_time

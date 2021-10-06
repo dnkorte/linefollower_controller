@@ -32,11 +32,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # 
-""" 
+"""
 
 import time
 
+
 class Device_Storage:
-	def __init__(self):
-		self.curspeed_left = 0
-		self.curspeed_right = 0
+    def __init__(self):
+        self.curspeed_left = 0
+        self.curspeed_right = 0

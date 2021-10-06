@@ -67,57 +67,59 @@ device_storage = Device_Storage()
 device_battery = Device_Battery()
 
 # create instances of mode handlers
-# 
-# mode_mainmenu = Mode_MainMenu(minitft, device_motors, device_linesense, device_storage)
-#mainmenu_items = [ ["Calibrate Sensors", "CAL"], ["Follow Path", "PATH"], ["Drive Straight 100 cm", "STRAIGHT"], 
-#    ["Curve Left", "CURVLEFT"], ["Curve Right", "CURVRIGHT"], ["Square Left", "SQLEFT"], 
-#    ["Square Right", "SQRIGHT"], ["Display Linesensor", "DISPSENS"] ]
-#    
-mainmenu_items = [ ["Calibrate Sensors", "CAL"], ["Follow Path", "PATH"], 
-    ["Setup Parameters", "SETUP"], ["Display Linesensor", "DISPSENS"] ]
+
+mainmenu_items = [
+    ["Calibrate Sensors", "CAL"],
+    ["Follow Path", "PATH"],
+    ["Setup Parameters", "SETUP"],
+    ["Display Linesensor", "DISPSENS"],
+]
 screen_menu = Screen_Menu(minitft, mainmenu_items, device_linesense, device_battery)
 
-mode_followpath = Mode_FollowPath(screen_dashboard, device_motors, device_linesense, device_storage, mode_config)
-mode_driveshapes = Mode_DriveShapes(screen_dashboard, device_motors, device_linesense, device_storage)
-mode_calibrate = Mode_Calibrate(screen_dashboard, device_motors, device_linesense, device_storage)
-screen_summary = Screen_Summary(minitft, mode_followpath, mode_config, device_storage, device_battery)
+mode_followpath = Mode_FollowPath(
+    screen_dashboard, device_motors, device_linesense, device_storage, mode_config
+)
+mode_driveshapes = Mode_DriveShapes(
+    screen_dashboard, device_motors, device_linesense, device_storage
+)
+mode_calibrate = Mode_Calibrate(
+    screen_dashboard, device_motors, device_linesense, device_storage
+)
+screen_summary = Screen_Summary(
+    minitft, mode_followpath, mode_config, device_storage, device_battery
+)
 
 next_mode = "MAINMENU"
 while True:
-    if (next_mode == "PATH"):
+    if next_mode == "PATH":
         mode_followpath.run_mode()
         screen_summary.run_mode()
-        next_mode="MAINMENU"
+        next_mode = "MAINMENU"
 
-    elif (next_mode == "CAL"):
+    elif next_mode == "CAL":
         next_mode = mode_calibrate.run_mode()
-        next_mode="MAINMENU"
+        next_mode = "MAINMENU"
 
-    elif (next_mode == "SETUP"):
+    elif next_mode == "SETUP":
         next_mode = mode_config.run_mode()
-        next_mode="MAINMENU"
+        next_mode = "MAINMENU"
 
-    elif (next_mode == "STRAIGHT"):
+    elif next_mode == "STRAIGHT":
         next_mode = mode_driveshapes.run_straight()
-        next_mode="MAINMENU"
+        next_mode = "MAINMENU"
 
-    elif (next_mode == "CURVLEFT"):
+    elif next_mode == "CURVLEFT":
         next_mode = mode_driveshapes.run_curveleft()
-        next_mode="MAINMENU"
+        next_mode = "MAINMENU"
 
-    elif (next_mode == "CURVRIGHT"):
+    elif next_mode == "CURVRIGHT":
         next_mode = mode_driveshapes.run_curveright()
-        next_mode="MAINMENU"
+        next_mode = "MAINMENU"
 
-    elif (next_mode == "DISPSENS"):
+    elif next_mode == "DISPSENS":
         next_mode = mode_calibrate.display_linesensor()
-        next_mode="MAINMENU"
-    else: 
+        next_mode = "MAINMENU"
+    else:
         next_mode = screen_menu.run_menu()
 
     time.sleep(0.1)
-
-
-
-
-

@@ -16,6 +16,6 @@ from adafruit_featherwing import minitft_featherwing
 # create instance for TFT board
 minitft = minitft_featherwing.MiniTFTFeatherWing()
 
-for i in range(30):
-	print(i)
-	time.sleep(1)
+for i in range(30)
+    print(i)
+time.sleep(1)

@@ -7,7 +7,7 @@
 #
 # Author(s): Don Korte
 # Module:  mode_driveshapes.py has functions that drive simple
-#	shapes and lines for testing and motor calibration purposes
+#   shapes and lines for testing and motor calibration purposes
 #
 # github: https://github.com/dnkorte/linefollower_controller
 #
@@ -40,135 +40,129 @@ import mycolors
 
 
 class Mode_DriveShapes:
-	def __init__(self, screen_dashboard, device_motors, device_linesense, device_storage):
-		self.screen_dashboard = screen_dashboard
-		self.device_motors = device_motors
-		self.device_linesense = device_linesense
-		self.device_storage = device_storage
-		self.lineposition = 0	# initially say its in middle (-125 to +125)
-		self.throttle_left = 0	# -100 full back, +100=full fwd, 0=stopped
-		self.throttle_right = 0	# -100 full back, +100=full fwd, 0=stopped
+    def __init__(
+        self, screen_dashboard, device_motors, device_linesense, device_storage
+    ):
+        self.screen_dashboard = screen_dashboard
+        self.device_motors = device_motors
+        self.device_linesense = device_linesense
+        self.device_storage = device_storage
+        self.lineposition = 0  # initially say its in middle (-125 to +125)
+        self.throttle_left = 0  # -100 full back, +100=full fwd, 0=stopped
+        self.throttle_right = 0  # -100 full back, +100=full fwd, 0=stopped
 
+    # this function initiates mode, runs it till done, then returns text
+    # string indicating next mode
+    def run_straight(self):
+        self.screen_dashboard.show_this_screen()
+        status = self.prepare_to_start()
+        if status == "CANCEL":
+            return "MAINMENU"
+        self.screen_dashboard.set_text1("Driving Straight 100 cm")
+        self.screen_dashboard.set_text2("Click A to quit")
+        self.screen_dashboard.set_text3("", mycolors.PINK, "C")
+        self.screen_dashboard.set_text4("")
+        self.screen_dashboard.set_text5("")
 
-	# this function initiates mode, runs it till done, then returns text string indicating next mode
-	def run_straight(self):
-		self.screen_dashboard.show_this_screen()
-		status = self.prepare_to_start()
-		if (status == "CANCEL"):
-			return "MAINMENU"
-		self.screen_dashboard.set_text1("Driving Straight 100 cm")		
-		self.screen_dashboard.set_text2("Click A to quit")	
-		self.screen_dashboard.set_text3("", mycolors.PINK, "C")	
-		self.screen_dashboard.set_text4("")	
-		self.screen_dashboard.set_text5("")	
+        self.device_motors.motors_accelerate(0.6)
+        self.device_motors.move_forward(0.6)
+        time.sleep(100 / 30)
+        self.device_motors.motors_accelerate(0)
+        self.device_motors.motors_stop()
+        return "MAINMENU"
 
-		self.device_motors.motors_accelerate(0.6)
-		self.device_motors.move_forward(0.6)
-		time.sleep(100/30)		
-		self.device_motors.motors_accelerate(0)
-		self.device_motors.motors_stop()
-		return "MAINMENU"
+    def run_curveleft(self):
+        self.screen_dashboard.show_this_screen()
+        status = self.prepare_to_start()
+        if status == "CANCEL":
+            return "MAINMENU"
+        self.screen_dashboard.set_text1("Curving Left")
+        self.screen_dashboard.set_text2("Click A to quit")
+        self.screen_dashboard.set_text3("", mycolors.PINK, "C")
+        self.screen_dashboard.set_text4("")
+        self.screen_dashboard.set_text5("")
 
-		
-	def run_curveleft(self):
-		self.screen_dashboard.show_this_screen()
-		status = self.prepare_to_start()
-		if (status == "CANCEL"):
-			return "MAINMENU"
-		self.screen_dashboard.set_text1("Curving Left")		
-		self.screen_dashboard.set_text2("Click A to quit")	
-		self.screen_dashboard.set_text3("", mycolors.PINK, "C")	
-		self.screen_dashboard.set_text4("")	
-		self.screen_dashboard.set_text5("")	
+        self.device_motors.motors_accelerate(0.5)
+        self.device_motors.move_forward_curved(0.5, -0.2)
+        time.sleep(2)
+        self.device_motors.motors_accelerate(0)
+        self.device_motors.motors_stop()
+        return "MAINMENU"
 
-		self.device_motors.motors_accelerate(0.5)
-		self.device_motors.move_forward_curved(0.5, -0.2)
-		time.sleep(2)	
-		self.device_motors.motors_accelerate(0)
-		self.device_motors.motors_stop()
-		return "MAINMENU"
+    def run_curveright(self):
+        self.screen_dashboard.show_this_screen()
+        status = self.prepare_to_start()
+        if status == "CANCEL":
+            return "MAINMENU"
+        self.screen_dashboard.set_text1("Curving Right")
+        self.screen_dashboard.set_text2("Click A to quit")
+        self.screen_dashboard.set_text3("", mycolors.PINK, "C")
+        self.screen_dashboard.set_text4("")
+        self.screen_dashboard.set_text5("")
 
-	def run_curveright(self):
-		self.screen_dashboard.show_this_screen()
-		status = self.prepare_to_start()
-		if (status == "CANCEL"):
-			return "MAINMENU"
-		self.screen_dashboard.set_text1("Curving Right")		
-		self.screen_dashboard.set_text2("Click A to quit")	
-		self.screen_dashboard.set_text3("", mycolors.PINK, "C")	
-		self.screen_dashboard.set_text4("")	
-		self.screen_dashboard.set_text5("")	
+        self.device_motors.motors_accelerate(0.5)
+        self.device_motors.move_forward_curved(0.5, 0.1)
+        time.sleep(2)
+        self.device_motors.motors_accelerate(0)
+        self.device_motors.motors_stop()
+        return "MAINMENU"
 
-		self.device_motors.motors_accelerate(0.5)
-		self.device_motors.move_forward_curved(0.5, 0.1)
-		time.sleep(2)	
-		self.device_motors.motors_accelerate(0)
-		self.device_motors.motors_stop()
-		return "MAINMENU"
+    def follow_path(self):
+        # fake_location = 0
+        # fake_increment = 5
 
-	def follow_path(self):
-		# fake_location = 0
-		# fake_increment = 5
+        while True:
+            buttons = self.screen_dashboard.this_tft.buttons
 
-		while True:
-		    buttons = self.screen_dashboard.this_tft.buttons
+            if buttons.a:
+                # print("Button A cycle")
+                still_pressed = True
+                while still_pressed:
+                    buttons = self.screen_dashboard.this_tft.buttons
+                    still_pressed = buttons.a
+                    time.sleep(0.05)
+                # print("released")
+                return
 
-		    if buttons.a:
-		        # print("Button A cycle")
-		        still_pressed = True
-		        while  still_pressed:
-		        	buttons = self.screen_dashboard.this_tft.buttons
-		        	still_pressed = buttons.a
-		        	time.sleep(0.05)
-		        # print("released")
-		        return 
+            self.lineposition = self.device_linesense.get_position() - 125
+            print("current line position:", self.lineposition)
+            self.screen_dashboard.show_line_position(self.lineposition)
 
-		    # fake_location += fake_increment
+            fake_throttle = int(self.lineposition * 0.8)
+            self.screen_dashboard.show_left_throttle(fake_throttle)
+            self.screen_dashboard.show_right_throttle(fake_throttle)
 
-		    # if (fake_location > 90):
-		    # 	fake_increment = -5
-		    # if (fake_location < -90):
-		    # 	fake_increment = 5
+            time.sleep(0.3)
 
-		    # fake_location = 100
-		    self.lineposition = self.device_linesense.get_position() - 125
-		    print("current line position:", self.lineposition)
-		    self.screen_dashboard.show_line_position(self.lineposition)
+    def prepare_to_start(self):
+        self.screen_dashboard.show_left_throttle(0)
+        self.screen_dashboard.show_right_throttle(0)
+        # self.screen_dashboard.hide_line_position()
 
-		    fake_throttle =int(self.lineposition * 0.8)
-		    self.screen_dashboard.show_left_throttle(fake_throttle)
-		    self.screen_dashboard.show_right_throttle(fake_throttle)
+        self.screen_dashboard.set_text1("Place robot on track")
+        self.screen_dashboard.set_text2("with sensor over line")
+        self.screen_dashboard.set_text4("Run # 1", mycolors.WHITE, "L")
+        self.screen_dashboard.set_text5("Starting Soon", mycolors.WHITE, "L")
 
-		    time.sleep(0.3) 
+        time_til_start = 5
+        while time_til_start > 0:
+            self.screen_dashboard.set_text3(
+                "    " + str(time_til_start), mycolors.PINK, "R"
+            )
+            time_til_start -= 1
+            # now wait 1 second, but check for "A" button cancel every 0.1 sec
+            for i in range(10):
+                buttons = self.screen_dashboard.this_tft.buttons
+                if buttons.a:
+                    still_pressed = True
+                    while still_pressed:
+                        buttons = self.screen_dashboard.this_tft.buttons
+                        still_pressed = buttons.a
+                        time.sleep(0.05)
+                    # print("released")
+                    return "CANCEL"
+                time.sleep(0.1)
 
-	def prepare_to_start(self):
-		self.screen_dashboard.show_left_throttle(0)
-		self.screen_dashboard.show_right_throttle(0)
-		# self.screen_dashboard.hide_line_position()
-
-		self.screen_dashboard.set_text1("Place robot on track")		
-		self.screen_dashboard.set_text2("with sensor over line")	
-		self.screen_dashboard.set_text4("Run # 1", mycolors.WHITE, "L")
-		self.screen_dashboard.set_text5("Starting Soon", mycolors.WHITE, "L")
-
-		time_til_start = 5
-		while(time_til_start > 0):
-			self.screen_dashboard.set_text3("    "+str(time_til_start), mycolors.PINK, "R")
-			time_til_start -= 1
-			# now wait 1 second, but check for "A" button cancel every 0.1 seconds
-			for i in range(10):	
-				buttons = self.screen_dashboard.this_tft.buttons
-				if buttons.a:
-				    still_pressed = True
-				    while  still_pressed:
-				    	buttons = self.screen_dashboard.this_tft.buttons
-				    	still_pressed = buttons.a
-				    	time.sleep(0.05)
-				    # print("released")
-				    return "CANCEL"
-				time.sleep(0.1)
-
-		self.screen_dashboard.set_text4("")		# clear out run number
-		self.screen_dashboard.set_text5("")		# clear out "starting soon"
-		return "READY"
-
+        self.screen_dashboard.set_text4("")  # clear out run number
+        self.screen_dashboard.set_text5("")  # clear out "starting soon"
+        return "READY"
